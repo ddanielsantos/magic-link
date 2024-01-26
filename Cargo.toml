@@ -1,0 +1,9 @@
+[package]
+name = "magic-link"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35.1" , features = ["macros", "rt-multi-thread"] }
+axum = "0.7.4"
+
