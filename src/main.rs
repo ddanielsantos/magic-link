@@ -4,10 +4,14 @@ use crate::state::AppState;
 mod state;
 mod domains;
 mod api;
+mod db;
 
 #[tokio::main]
 async fn main() {
-    let state = AppState::new();
+    let pool = db::create_connection_pool().await;
+
+    sqlx::migrate!().run(&pool).await.expect("Failed to migrate database");
+    let state = AppState::new(pool);
 
     let api = api::routes()
         .with_state(state);
