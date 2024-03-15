@@ -32,7 +32,7 @@ mod jwt {
 pub mod env {
     pub enum Environment {
         Development,
-        Production
+        Production,
     }
 
     pub fn get_environment() -> Environment {
@@ -40,21 +40,67 @@ pub mod env {
     }
 }
 
-pub mod ses {
-    use super::env::{Environment, get_environment};
-    use super::jwt::sign_jwt;
+pub mod user_mailing {
+    use super::{email, jwt};
 
-    pub async fn send_email(address: &str) {
-        let jwt = sign_jwt(address);
+    pub fn build_login_email(address: String) -> email::Email {
+        let jwt = jwt::sign_jwt(&address);
 
-        let magic_link = format!("http://localhost:3000/auth?token={}", jwt);
+        email::Email {
+            address,
+            subject: "Your magic link arrived!".to_owned(),
+            body: format!("http://localhost:3000/auth?token={}", jwt),
+        }
+    }
+}
 
-        match get_environment() {
-            Environment::Development => {
-                println!("Sending email to {} with magic link: {}", address, magic_link);
+pub mod email {
+    use axum::http::StatusCode;
+
+    use super::env::{get_environment, Environment};
+
+    #[trait_variant::make(EmailSenderVariant: Send)]
+    pub trait EmailSender {
+        async fn send_email(email: &Email) -> Result<(), EmailSenderError>;
+    }
+
+    pub struct SESWrapper {}
+
+    pub struct Email {
+        pub address: String,
+        pub subject: String,
+        pub body: String,
+    }
+
+    #[derive(Debug)]
+    pub enum EmailSenderError {
+        Unknown,
+    }
+
+    impl axum::response::IntoResponse for EmailSenderError {
+        fn into_response(self) -> axum::response::Response {
+            match self {
+                EmailSenderError::Unknown => (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to send email, please try again.",
+                )
+                    .into_response(),
             }
-            Environment::Production => {
-                todo!()
+        }
+    }
+
+    impl EmailSender for SESWrapper {
+        async fn send_email(email: &Email) -> Result<(), EmailSenderError> {
+            match get_environment() {
+                Environment::Development => {
+                    println!(
+                        "Sending email to {} with subject {}, with the following body: \n{}",
+                        email.address, email.subject, email.body
+                    );
+
+                    Ok(())
+                }
+                Environment::Production => Err(EmailSenderError::Unknown),
             }
         }
     }
