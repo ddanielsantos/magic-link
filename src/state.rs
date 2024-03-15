@@ -1,5 +1,5 @@
-use sqlx::{Pool, Sqlite};
 use sqlx::types::time::OffsetDateTime;
+use sqlx::{Pool, Sqlite};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -7,10 +7,8 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(db: Pool<Sqlite> ) -> Self {
-        AppState {
-            db
-        }
+    pub fn new(db: Pool<Sqlite>) -> Self {
+        AppState { db }
     }
 }
 
@@ -20,5 +18,5 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub created_at: OffsetDateTime,
-    pub updated_at: OffsetDateTime
+    pub updated_at: OffsetDateTime,
 }
