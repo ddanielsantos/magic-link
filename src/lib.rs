@@ -4,7 +4,7 @@ mod jwt {
     use serde::Serialize;
     use sha2::Sha256;
 
-    const JWT_SECRET: &'static str = "my_awesome_secret";
+    const JWT_SECRET: &str = "my_awesome_secret";
 
     #[derive(Debug, Serialize)]
     struct Claims {
