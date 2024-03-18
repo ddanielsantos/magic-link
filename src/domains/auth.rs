@@ -36,7 +36,7 @@ async fn login_handler(
             let email = user_mailing::build_login_email(user.email);
             match SESWrapper::send_email(&email).await {
                 Ok(_) => (StatusCode::OK).into_response(),
-                Err(a) => a.into_response(),
+                Err(a) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
             }
         }
         None => (StatusCode::NOT_FOUND, "Failed to proceed with the login").into_response(),
