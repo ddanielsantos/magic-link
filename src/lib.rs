@@ -55,8 +55,6 @@ pub mod user_mailing {
 }
 
 pub mod email {
-    use axum::http::StatusCode;
-
     use super::env::{get_environment, Environment};
 
     #[trait_variant::make(EmailSenderVariant: Send)]
@@ -75,18 +73,6 @@ pub mod email {
     #[derive(Debug)]
     pub enum EmailSenderError {
         Unknown,
-    }
-
-    impl axum::response::IntoResponse for EmailSenderError {
-        fn into_response(self) -> axum::response::Response {
-            match self {
-                EmailSenderError::Unknown => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Failed to send email, please try again.",
-                )
-                    .into_response(),
-            }
-        }
     }
 
     impl EmailSender for SESWrapper {
